@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 public class Main {
     private static ImporterImpl importer;
-    private static Institution institution;
+    private static InstitutionImpl institution; // Usando InstitutionImpl diretamente para acessar o método auxiliar
 
     public static void main(String[] args) {
         HTTPProvider httpProvider = new HTTPProvider();
@@ -70,7 +70,7 @@ public class Main {
 
     private static void viewContainers() {
         System.out.println("Containers:");
-        for (Container container : institution.getContainers()) {
+        for (Container container : institution.getAllContainers()) {  // Usando getAllContainers
             System.out.println("Code: " + container.getCode() + ", Capacity: " + container.getCapacity() + ", Type: " + container.getType());
         }
     }
@@ -96,7 +96,7 @@ public class Main {
 
     private static void viewSensorReadings() {
         System.out.println("Sensor Readings:");
-        for (Container container : institution.getContainers()) {
+        for (Container container : institution.getAllContainers()) {  // Usando getAllContainers
             for (Measurement measurement : container.getMeasurements()) {
                 System.out.println("Container: " + container.getCode() + ", Date: " + measurement.getDate() + ", Value: " + measurement.getValue());
             }

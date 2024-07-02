@@ -41,7 +41,16 @@ public class InstitutionImpl implements Institution {
     }
 
     @Override
-    public Container[] getContainers() {
+    public Container getContainer(AidBox aidBox, ContainerType containerType) throws ContainerException {
+        for (Container container : containers) {
+            if (container != null && container.getType().equals(containerType)) {
+                return container;
+            }
+        }
+        throw new ContainerException("Container not found for the specified type.");
+    }
+
+    public Container[] getAllContainers() {  // Método auxiliar para obter todos os containers
         Container[] activeContainers = new Container[containerCount];
         System.arraycopy(containers, 0, activeContainers, 0, containerCount);
         return activeContainers;
@@ -79,17 +88,6 @@ public class InstitutionImpl implements Institution {
             vehicles = newVehicles;
         }
         vehicles[vehicleCount++] = vehicle;
-        return true;
-    }
-
-    @Override
-    public boolean addContainer(Container container) {
-        if (containerCount == containers.length) {
-            Container[] newContainers = new Container[containers.length * 2];
-            System.arraycopy(containers, 0, newContainers, 0, containers.length);
-            containers = newContainers;
-        }
-        containers[containerCount++] = container;
         return true;
     }
 
@@ -140,12 +138,6 @@ public class InstitutionImpl implements Institution {
         PickingMap[] result = new PickingMap[count];
         System.arraycopy(filteredMaps, 0, result, 0, count);
         return result;
-    }
-
-    @Override
-    public Container getContainer(AidBox aidBox, ContainerType containerType) throws ContainerException {
-        // Implementação para retornar um container específico
-        return null;
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ImporterImpl implements Importer {
     private final HTTPProvider httpProvider;
@@ -86,8 +87,14 @@ public class ImporterImpl implements Importer {
         JSONArray typesArray = parseJSONArray(response);
 
         for (Object obj : typesArray) {
-            String type = (String) obj;
-            // Armazenar ou usar conforme necessário
+            if (obj instanceof String) {
+                String type = (String) obj;
+                // Armazenar ou usar conforme necessário
+            } else if (obj instanceof JSONObject) {
+                JSONObject typeJson = (JSONObject) obj;
+                String type = (String) typeJson.get("type");
+                // Armazenar ou usar conforme necessário
+            }
         }
     }
 
@@ -139,10 +146,12 @@ public class ImporterImpl implements Importer {
         String response = httpProvider.getFromURL(url);
         JSONArray readingsJson = parseJSONArray(response);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
         for (Object obj : readingsJson) {
             JSONObject readingJson = (JSONObject) obj;
             String containerCode = (String) readingJson.get("contentor");
-            LocalDateTime date = LocalDateTime.parse((String) readingJson.get("data"));
+            LocalDateTime date = LocalDateTime.parse((String) readingJson.get("data"), formatter);
             double value = ((Number) readingJson.get("valor")).doubleValue();
 
             Measurement measurement = new MeasurementImpl(date, value);
