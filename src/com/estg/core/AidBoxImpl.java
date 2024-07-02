@@ -28,37 +28,28 @@ public class AidBoxImpl implements AidBox {
 
     @Override
     public double getDistance(AidBox other) throws AidBoxException {
-        if (other == null) {
-            throw new AidBoxException("AidBox não pode ser nulo");
-        }
-        // Implementar lógica para calcular a distância entre this e other
+        // Implementar lógica para calcular a distância
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
     public double getDuration(AidBox other) throws AidBoxException {
-        if (other == null) {
-            throw new AidBoxException("AidBox não pode ser nulo");
-        }
-        // Implementar lógica para calcular a duração entre this e other
+        // Implementar lógica para calcular a duração
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
     public boolean addContainer(Container container) throws ContainerException {
-        if (container == null) {
-            throw new ContainerException("Container não pode ser nulo");
-        }
-        for (int i = 0; i < containerCount; i++) {
-            if (containers[i].getType().equals(container.getType())) {
-                throw new ContainerException("AidBox já contém um container deste tipo");
-            }
-        }
         if (containerCount == containers.length) {
             // Redimensionar array se necessário
             Container[] newContainers = new Container[containers.length * 2];
             System.arraycopy(containers, 0, newContainers, 0, containers.length);
             containers = newContainers;
+        }
+        for (int i = 0; i < containerCount; i++) {
+            if (containers[i].equals(container)) {
+                throw new ContainerException("Container já existe nesta AidBox");
+            }
         }
         containers[containerCount++] = container;
         return true;
@@ -66,9 +57,6 @@ public class AidBoxImpl implements AidBox {
 
     @Override
     public Container getContainer(ContainerType type) {
-        if (type == null) {
-            return null;
-        }
         for (int i = 0; i < containerCount; i++) {
             if (containers[i].getType().equals(type)) {
                 return containers[i];
@@ -86,9 +74,6 @@ public class AidBoxImpl implements AidBox {
 
     @Override
     public void removeContainer(Container container) throws AidBoxException {
-        if (container == null) {
-            throw new AidBoxException("Container não pode ser nulo");
-        }
         boolean found = false;
         for (int i = 0; i < containerCount; i++) {
             if (containers[i].equals(container)) {
@@ -101,6 +86,15 @@ public class AidBoxImpl implements AidBox {
         if (!found) {
             throw new AidBoxException("Container não encontrado nesta AidBox");
         }
+    }
+
+    public boolean hasContainer(Container container) {
+        for (int i = 0; i < containerCount; i++) {
+            if (containers[i].equals(container)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -15,14 +15,9 @@ import java.time.format.DateTimeFormatter;
 
 public class ImporterImpl implements Importer {
     private final HTTPProvider httpProvider;
-    private Container[] containers;
-    private int containerCount;
-    private final int initialCapacity = 10;
 
     public ImporterImpl(HTTPProvider httpProvider) {
         this.httpProvider = httpProvider;
-        this.containers = new Container[initialCapacity];
-        this.containerCount = 0;
     }
 
     @Override
@@ -32,11 +27,11 @@ public class ImporterImpl implements Importer {
         }
         try {
             importAidBoxes(institution);
-            importContainers();
-            importContainerTypes();
+            importContainers(institution);
+            importContainerTypes(institution);
             importDistances(institution);
             importVehicles(institution);
-            importSensorReadings();
+            importSensorReadings(institution);
         } catch (AidBoxException | ContainerException | VehicleException | MeasurementException e) {
             throw new RuntimeException(e);
         }
@@ -56,7 +51,7 @@ public class ImporterImpl implements Importer {
             JSONArray containersJson = (JSONArray) aidBoxJson.get("containers");
             for (Object containerObj : containersJson) {
                 String containerCode = (String) containerObj;
-                Container container = findContainerByCode(containerCode);
+                Container container = ((InstitutionImpl) institution).findContainerByCode(containerCode);
                 if (container != null) {
                     aidBox.addContainer(container);
                 }
@@ -65,7 +60,7 @@ public class ImporterImpl implements Importer {
         }
     }
 
-    private void importContainers() throws IOException, ContainerException {
+    private void importContainers(Institution institution) throws IOException, ContainerException {
         String url = "https://data.mongodb-api.com/app/data-docuz/endpoint/containers";
         String response = httpProvider.getFromURL(url);
         JSONArray containersJson = parseJSONArray(response);
@@ -77,26 +72,29 @@ public class ImporterImpl implements Importer {
             String type = (String) containerJson.get("type");
             ContainerType containerType = new ConcreteContainerType(ItemType.fromString(type));
             Container container = new ContainerImpl(code, capacity, containerType);
-            addContainer(container);
+            ((InstitutionImpl) institution).addContainer(container);
         }
     }
 
-    private void importContainerTypes() throws IOException {
+    private void importContainerTypes(Institution institution) throws IOException {
         String url = "https://data.mongodb-api.com/app/data-docuz/endpoint/types";
         String response = httpProvider.getFromURL(url);
         JSONArray typesArray = parseJSONArray(response);
 
         for (Object obj : typesArray) {
-            if (obj instanceof String) {
+            if (obj instanceof JSONObject) {
+                JSONObject jsonObject = (JSONObject) obj;
+                for (Object key : jsonObject.keySet()) {
+                    String type = (String) key;
+                    ((InstitutionImpl) institution).addContainerType(type);
+                }
+            } else if (obj instanceof String) {
                 String type = (String) obj;
-                // Armazenar ou usar conforme necessário
-            } else if (obj instanceof JSONObject) {
-                JSONObject typeJson = (JSONObject) obj;
-                String type = (String) typeJson.get("type");
-                // Armazenar ou usar conforme necessário
+                ((InstitutionImpl) institution).addContainerType(type);
             }
         }
     }
+
 
     private void importDistances(Institution institution) throws IOException, AidBoxException {
         String url = "https://data.mongodb-api.com/app/data-docuz/endpoint/distances";
@@ -113,7 +111,7 @@ public class ImporterImpl implements Importer {
                 String to = (String) toJson.get("name");
                 double distance = ((Number) toJson.get("distance")).doubleValue();
                 double duration = ((Number) toJson.get("duration")).doubleValue();
-                // Armazenar ou processar conforme necessário
+                ((InstitutionImpl) institution).addDistance(from, to, distance, duration);
             }
         }
     }
@@ -141,12 +139,12 @@ public class ImporterImpl implements Importer {
         }
     }
 
-    private void importSensorReadings() throws IOException, MeasurementException, ContainerException {
+    private void importSensorReadings(Institution institution) throws IOException, MeasurementException, ContainerException {
         String url = "https://data.mongodb-api.com/app/data-docuz/endpoint/readings";
         String response = httpProvider.getFromURL(url);
         JSONArray readingsJson = parseJSONArray(response);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
         for (Object obj : readingsJson) {
             JSONObject readingJson = (JSONObject) obj;
@@ -155,53 +153,18 @@ public class ImporterImpl implements Importer {
             double value = ((Number) readingJson.get("valor")).doubleValue();
 
             Measurement measurement = new MeasurementImpl(date, value);
-            Container container = findContainerByCode(containerCode);
+            Container container = ((InstitutionImpl) institution).findContainerByCode(containerCode);
             if (container != null) {
                 container.addMeasurement(measurement);
             }
         }
     }
 
-    private void addContainer(Container container) {
-        if (containerCount == containers.length) {
-            Container[] newContainers = new Container[containers.length * 2];
-            System.arraycopy(containers, 0, newContainers, 0, containers.length);
-            containers = newContainers;
-        }
-        containers[containerCount++] = container;
-    }
-
-    private Container findContainerByCode(String code) {
-        for (int i = 0; i < containerCount; i++) {
-            if (containers[i].getCode().equals(code)) {
-                return containers[i];
-            }
-        }
-        return null;
-    }
 
     private JSONArray parseJSONArray(String response) {
         try {
             JSONParser parser = new JSONParser();
             return (JSONArray) parser.parse(response);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private JSONObject parseJSONObject(String response) {
-        try {
-            JSONParser parser = new JSONParser();
-            return (JSONObject) parser.parse(response);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Object parseJSON(String response) {
-        try {
-            JSONParser parser = new JSONParser();
-            return parser.parse(response);
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }

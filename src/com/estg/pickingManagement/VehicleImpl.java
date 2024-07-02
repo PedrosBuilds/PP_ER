@@ -9,11 +9,13 @@ public class VehicleImpl implements Vehicle {
     private String code;
     private String[] types;
     private int[] capacities;
+    private boolean enabled;
 
     public VehicleImpl(String code, String[] types, int[] capacities) {
         this.code = code;
         this.types = types;
         this.capacities = capacities;
+        this.enabled = true;
     }
 
     @Override
@@ -35,6 +37,14 @@ public class VehicleImpl implements Vehicle {
             }
         }
         return 0;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public boolean canTransport(AidBox aidBox) {
