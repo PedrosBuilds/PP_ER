@@ -19,12 +19,31 @@ public class Main {
         institution = new InstitutionImpl("InstitutionName");
 
         try {
-            boolean fromWeb = true;  // Ajuste conforme necessário
-            importData(fromWeb);
+            showImportOptions();
             showMenu();
         } catch (IOException | InstitutionException e) {
             System.out.println("Failed to import data: " + e.getMessage());
         }
+    }
+
+    private static void showImportOptions() throws IOException, InstitutionException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Select data import option:");
+        System.out.println("1. Load data from WebAPI");
+        System.out.println("2. Load data from files");
+
+        int choice = scanner.nextInt();
+        boolean fromWeb;
+        switch (choice) {
+            case 1 -> fromWeb = true;
+            case 2 -> fromWeb = false;
+            default -> {
+                System.out.println("Invalid option. Defaulting to WebAPI.");
+                fromWeb = true;
+            }
+        }
+
+        importData(fromWeb);
     }
 
     private static void importData(boolean fromWeb) throws IOException, InstitutionException {
