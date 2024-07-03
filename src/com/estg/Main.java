@@ -11,23 +11,24 @@ import java.util.Scanner;
 
 public class Main {
     private static ImporterImpl importer;
-    private static InstitutionImpl institution; // Usando InstitutionImpl diretamente para acessar o método auxiliar
+    private static InstitutionImpl institution;
 
     public static void main(String[] args) {
         HTTPProvider httpProvider = new HTTPProvider();
         importer = new ImporterImpl(httpProvider);
-        institution = new InstitutionImpl("InstitutionName");  // Adicione o nome da instituição aqui
+        institution = new InstitutionImpl("InstitutionName");
 
         try {
-            importData();
+            boolean fromWeb = true;  // Ajuste conforme necessário
+            importData(fromWeb);
             showMenu();
         } catch (IOException | InstitutionException e) {
             System.out.println("Failed to import data: " + e.getMessage());
         }
     }
 
-    private static void importData() throws IOException, InstitutionException {
-        importer.importData(institution);
+    private static void importData(boolean fromWeb) throws IOException, InstitutionException {
+        importer.importData(institution, fromWeb);
         System.out.println("Data imported successfully.");
     }
 
@@ -70,21 +71,23 @@ public class Main {
 
     private static void viewContainers() {
         System.out.println("Containers:");
-        for (Container container : institution.getAllContainers()) {  // Usando getAllContainers
+        for (Container container : institution.getAllContainers()) {
             System.out.println("Code: " + container.getCode() + ", Capacity: " + container.getCapacity() + ", Type: " + container.getType());
         }
     }
 
     private static void viewContainerTypes() {
-        // Assuming types are stored somewhere accessible
         System.out.println("Container Types:");
-        // print types
+        for (String type : institution.getContainerTypes()) {
+            System.out.println("Type: " + type);
+        }
     }
 
     private static void viewDistances() {
-        // Print distances between aid boxes
         System.out.println("Distances:");
-        // print distances
+        for (InstitutionImpl.Distance distance : institution.getDistances()) {
+            System.out.println("From: " + distance.getFrom() + ", To: " + distance.getTo() + ", Distance: " + distance.getDistance() + ", Duration: " + distance.getDuration());
+        }
     }
 
     private static void viewVehicles() {
@@ -96,7 +99,7 @@ public class Main {
 
     private static void viewSensorReadings() {
         System.out.println("Sensor Readings:");
-        for (Container container : institution.getAllContainers()) {  // Usando getAllContainers
+        for (Container container : institution.getAllContainers()) {
             for (Measurement measurement : container.getMeasurements()) {
                 System.out.println("Container: " + container.getCode() + ", Date: " + measurement.getDate() + ", Value: " + measurement.getValue());
             }

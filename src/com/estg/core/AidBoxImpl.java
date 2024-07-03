@@ -88,15 +88,6 @@ public class AidBoxImpl implements AidBox {
         }
     }
 
-    public boolean hasContainer(Container container) {
-        for (int i = 0; i < containerCount; i++) {
-            if (containers[i].equals(container)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public Object clone() {
         try {
@@ -107,5 +98,15 @@ public class AidBoxImpl implements AidBox {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError(); // Isto nunca deve acontecer porque estamos clonando
         }
+    }
+
+    // Método adicional para verificar se um contêiner está presente
+    public boolean containsContainer(Container container) {
+        for (int i = 0; i < containerCount; i++) {
+            if (containers[i].equals(container)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
